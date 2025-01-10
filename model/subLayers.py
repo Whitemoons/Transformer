@@ -27,7 +27,7 @@ class PositionWiseScaleProductAttention(nn.Module):
         if mask is not None:
             attention_scores = attention_scores.masked_fill(mask == 0, -100000)
 
-        attention_distribution = F.softmax(attention_scores)
+        attention_distribution = F.softmax(attention_scores, dim=-1)
         attention_distribution = self.dropout(attention_distribution)
 
         attention_values = torch.matmul(attention_distribution, v)
@@ -58,23 +58,26 @@ class MultiHeadSelfAttention(nn.Module):
         self.dropout = nn.Dropout(dropout)
 
     def forward(self, q, k, v, mask = None):
-        batch_size, seq_len, d_model = q.size()
+        batch_size, dec_seq_len, d_model = q.size()
+        batch_size, enc_seq_len, d_model = k.size()
 
         # 1. dot product each weight matrices
         q = self.Q(q)
         k = self.K(k)
         v = self.V(v)
 
+        #print(f"After linear projections - Q: {q.shape}, K: {k.shape}, V: {v.shape}")
+
         # 2. split weight matrices
-        q = q.view([batch_size, seq_len, self.head_num, -1]).transpose(1,2) # [batch_size, head_num, seq_len, d_k]
-        k = k.view([batch_size, seq_len, self.head_num, -1]).transpose(1,2)
-        v = v.view([batch_size, seq_len, self.head_num, -1]).transpose(1,2)
+        q = q.view([batch_size, dec_seq_len, self.head_num, -1]).transpose(1,2) # [batch_size, head_num, seq_len, d_k]
+        k = k.view([batch_size, enc_seq_len, self.head_num, -1]).transpose(1,2)
+        v = v.view([batch_size, enc_seq_len, self.head_num, -1]).transpose(1,2)
 
         # 3. calculate attention value
         attention_values, attention_distribution = self.attention(q, k, v, mask)
 
         # 4. concat
-        attention_values = attention_values.transpose(1,2).reshape((batch_size, seq_len, -1))
+        attention_values = attention_values.transpose(1,2).reshape((batch_size, dec_seq_len, -1))
 
         # 5. linear
         output = self.linear(attention_values)

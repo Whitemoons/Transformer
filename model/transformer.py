@@ -2,8 +2,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from identicalLayers import EncoderLayer, DecoderLayer
-from embedding import TransformerEmbedding
+from model.identicalLayers import EncoderLayer, DecoderLayer
+from model.embedding import TransformerEmbedding
 
 class Encoder(nn.Module):
     def __init__(self, n_layer, vocab_size, max_len, d_model, ffn_hidden, n_head, device, dropout=0.1):

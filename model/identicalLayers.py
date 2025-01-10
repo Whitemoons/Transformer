@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from subLayers import PositionWiseFeedForward, MultiHeadSelfAttention
+from model.subLayers import PositionWiseFeedForward, MultiHeadSelfAttention
 
 class EncoderLayer(nn.Module):
     def __init__(self, d_model, hidden, n_head, dropout=0.1):
@@ -17,7 +17,7 @@ class EncoderLayer(nn.Module):
         self.dropout2 = nn.Dropout(dropout)
 
     def forward(self, x):
-        _x = self.attention(q=x, k=x, v=x)
+        _x, _ = self.attention(q=x, k=x, v=x)
         _x = self.dropout1(_x)
         x = self.norm1(x + _x)
 
@@ -44,11 +44,11 @@ class DecoderLayer(nn.Module):
         self.dropout3 = nn.Dropout(dropout)
 
     def forward(self, encoder, x, mask):
-        _x = self.maskedAttention(q=x, k=x, v=x, mask=mask)
+        _x, _ = self.maskedAttention(q=x, k=x, v=x, mask=mask)
         _x = self.dropout1(_x)
         x = self.norm1(x + _x)
 
-        _x = self.encoderDecoderAttention(q=x, k=encoder, v=encoder)
+        _x, _ = self.encoderDecoderAttention(q=x, k=encoder, v=encoder)
         _x = self.dropout2(_x)
         x = self.norm2(x + _x)
 
