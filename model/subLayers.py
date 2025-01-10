@@ -57,7 +57,7 @@ class MultiHeadSelfAttention(nn.Module):
 
         self.dropout = nn.Dropout(dropout)
 
-    def forward(self, q, k, v):
+    def forward(self, q, k, v, mask = None):
         batch_size, seq_len, d_model = q.size()
 
         # 1. dot product each weight matrices
@@ -71,7 +71,7 @@ class MultiHeadSelfAttention(nn.Module):
         v = v.view([batch_size, seq_len, self.head_num, -1]).transpose(1,2)
 
         # 3. calculate attention value
-        attention_values, attention_distribution = self.attention(q,k,v)
+        attention_values, attention_distribution = self.attention(q, k, v, mask)
 
         # 4. concat
         attention_values = attention_values.transpose(1,2).reshape((batch_size, seq_len, -1))
